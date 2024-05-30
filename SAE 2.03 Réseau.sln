@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.33516.290
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SAE 2.03 Réseau", "SAE 2.03 Réseau\SAE 2.03 Réseau.csproj", "{4F9A0722-4EC2-4A32-9FF6-D8F2EB7FF674}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4F9A0722-4EC2-4A32-9FF6-D8F2EB7FF674}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F9A0722-4EC2-4A32-9FF6-D8F2EB7FF674}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F9A0722-4EC2-4A32-9FF6-D8F2EB7FF674}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F9A0722-4EC2-4A32-9FF6-D8F2EB7FF674}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B0BE2BCD-34EC-42E2-AE06-9D04932D28F1}
+	EndGlobalSection
+EndGlobal
