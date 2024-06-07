@@ -1,4 +1,6 @@
 using Microsoft.VisualBasic.ApplicationServices;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace SAE_2._03_Réseau
@@ -18,27 +20,42 @@ namespace SAE_2._03_Réseau
         private string initialDmachineText;
         private Point startPoint;
 
-        private readonly Dictionary<string, string> specialIPRanges = new Dictionary<string, string>
-{
-    { "0.0.0.0", "\"This\" Network RFC 1122, Section 3.2.1.3" },
-    { "10.0.0.0", "Private-Use Networks RFC 1918" },
-    { "127.0.0.0", "Loopback RFC 1122, Section 3.2.1.3" },
-    { "169.254.0.0", "Link Local RFC 3927" },
-    { "172.16.0.0", "Private-Use Networks RFC 1918" },
-    { "192.0.0.0", "IETF Protocol Assignments RFC 5736" },
-    { "192.0.2.0", "TEST-NET-1 RFC 5737" },
-    { "192.88.99.0", "6to4 Relay Anycast RFC 3068" },
-    { "192.168.0.0", "Private-Use Networks RFC 1918" },
-    { "198.18.0.0", "Network Interconnect Device Benchmark Testing RFC 2544" },
-    { "198.51.100.0", "TEST-NET-2 RFC 5737" },
-    { "203.0.113.0", "TEST-NET-3 RFC 5737" },
-    { "224.0.0.0", "Multicast RFC 3171" },
-    { "240.0.0.0", "Reserved for Future Use RFC 1112, Section 4" },
-    { "255.255.255.255", "Limited Broadcast RFC 919, Section 7; RFC 922, Section 7" }
-};
+        private readonly List<(string Start, string End, string Description)> specialIPRanges = new List<(string, string, string)>
+        {
+            ("0.0.0.0", "0.255.255.255", "\"This\" Network RFC 1122, Section 3.2.1.3"),
+            ("10.0.0.0", "10.255.255.255", "Private-Use Networks RFC 1918"),
+            ("127.0.0.0", "127.255.255.255", "Loopback RFC 1122, Section 3.2.1.3"),
+            ("169.254.0.0", "169.254.255.255", "Link Local RFC 3927"),
+            ("172.16.0.0", "172.31.255.255", "Private-Use Networks RFC 1918"),
+            ("192.0.0.0", "192.0.0.255", "IETF Protocol Assignments RFC 5736"),
+            ("192.0.2.0", "192.0.2.255", "TEST-NET-1 RFC 5737"),
+            ("192.88.99.0", "192.88.99.255", "6to4 Relay Anycast RFC 3068"),
+            ("192.168.0.0", "192.168.255.255", "Private-Use Networks RFC 1918"),
+            ("198.18.0.0", "198.19.255.255", "Network Interconnect Device Benchmark Testing RFC 2544"),
+            ("198.51.100.0", "198.51.100.255", "TEST-NET-2 RFC 5737"),
+            ("203.0.113.0", "203.0.113.255", "TEST-NET-3 RFC 5737"),
+            ("224.0.0.0", "239.255.255.255", "Multicast RFC 3171"),
+            ("240.0.0.0", "255.255.255.255", "Reserved for Future Use RFC 1112, Section 4"),
+            ("100.64.0.0", "100.127.255.255", "CGN RFC6598")
+        };
+
+        [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
+        private static extern IntPtr CreateRoundRectRgn
+        (
+            int nLeftRect,     
+            int nTopRect,      
+            int nRightRect,    
+            int nBottomRect,   
+            int nWidthEllipse, 
+            int nHeightEllipse 
+        );
         public Form1()
         {
             InitializeComponent();
+
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.Load += new EventHandler(Form1_Load);
+            this.Resize += new EventHandler(Form1_Resize);
 
             // Stockez les valeurs initiales des labels
             initialClasseText = lblClasse.Text;
@@ -46,7 +63,7 @@ namespace SAE_2._03_Réseau
             initialMasqueText = lblMasquedesousreseau.Text;
             initialReseauText = lblReseau.Text;
             initialBroadcastText = lblBroadcast.Text;
-            initialNbMachineText = lblnbMachine.Text;
+            initialNbMachineText = lblnbIP.Text;
             initialIPBText = lblIPB.Text;
             initialMasqueBText = lblMasqueB.Text;
             initialPmachineText = lblPmachine.Text;
@@ -108,12 +125,43 @@ namespace SAE_2._03_Réseau
         private void btbnCalculer_Click(object sender, EventArgs e)
         {
 
-            // Lire les entrées des TextBox
+
             string masqueInput = txtboxMasque.Text;
             string ip2Input = txtboxIP2.Text;
             string cidrInput = txtboxCIDR.Text;
             string ipInput = txtboxIP.Text;
+            // Vérifier si le masque est vide et si le CIDR est fourni
+            if (string.IsNullOrWhiteSpace(masqueInput) && !string.IsNullOrWhiteSpace(cidrInput))
+            {
+                if (int.TryParse(cidrInput, out int cidr))
+                {
+                    try
+                    {
+                        // Convertir le CIDR en masque de sous-réseau
+                        masqueInput = ObtenirMasque(cidr);
+                    }
+                    catch (ArgumentException ex)
+                    {
+                        MessageBox.Show(ex.Message, "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Le CIDR n'est pas valide. Veuillez entrer un CIDR valide (entre 8 et 32).", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
 
+            // Convertir le masque en une chaîne binaire de bits
+            byte[] masqueBytes = Array.ConvertAll(masqueInput.Split('.'), byte.Parse);
+
+            // Valider le masque de sous-réseau en utilisant la méthode IsValidSubnetMask
+            if (!IsValidSubnetMask(masqueBytes))
+            {
+                MessageBox.Show($"Le masque {masqueInput} n'est pas valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
             // Vérifier si les champs IP et CIDR sont remplis
             bool isIPAndCIDRProvided = !string.IsNullOrWhiteSpace(ipInput) && !string.IsNullOrWhiteSpace(cidrInput);
 
@@ -139,6 +187,16 @@ namespace SAE_2._03_Réseau
                     return; // Sortir de la méthode si le CIDR est invalide
                 }
 
+                // Vérifier la correspondance du CIDR avec la classe de l'IP
+                string ipClass = ObtenirClasseIP(ipInput);
+                int cidrValue = int.Parse(cidrInput);
+
+                if (!ValidationCIDRPourClasse(ipClass, cidrValue))
+                {
+                    MessageBox.Show($"Le CIDR {cidrValue} n'est pas valide pour une adresse IP de classe {ipClass}.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return; // Sortir de la méthode si le CIDR ne correspond pas à la classe de l'IP
+                }
+
                 // Vérifier si l'adresse IP appartient à une plage spéciale
                 if (IPSpeciale(ipInput, out string? specialMessage))
                 {
@@ -146,7 +204,7 @@ namespace SAE_2._03_Réseau
                 }
 
                 // Si validation réussie, calculer et afficher la classe IP et le masque de sous-réseau
-                AfficherClasseIPetMasque(ipInput, int.Parse(cidrInput));
+                AfficherClasseIPetMasque(ipInput, cidrValue);
             }
             else if (isIP2AndMasqueProvided)
             {
@@ -156,10 +214,10 @@ namespace SAE_2._03_Réseau
                     MessageBox.Show("Le format de l'adresse IP secondaire est invalide. Veuillez entrer une adresse IP valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return; // Sortir de la méthode si l'adresse IP secondaire est invalide
                 }
-                else if (!ValidationIP(masqueInput))
+                else if (!IsValidSubnetMask(masqueBytes))
                 {
-                    MessageBox.Show("Le format de l'adresse IP du masque est invalide. Veuillez entrer une adresse IP valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Sortir de la méthode si l'adresse IP du masque est invalide
+                    MessageBox.Show($"Le masque {masqueInput} n'est pas valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return; // Sortir de la méthode si le masque de sous-réseau est invalide
                 }
 
                 // Si validation réussie, calculer et afficher la classe IP pour ip2Input
@@ -171,6 +229,63 @@ namespace SAE_2._03_Réseau
                 return; // Sortir de la méthode si aucun ensemble de champs n'est rempli
             }
         }
+
+
+
+
+
+
+        private bool ValidationCIDRPourClasse(string ipClass, int cidr)
+        {
+            // Définir les plages CIDR valides pour chaque classe d'IP
+            switch (ipClass)
+            {
+                case "A":
+                    return cidr >= 8 && cidr <= 32;
+                case "B":
+                    return cidr >= 16 && cidr <= 32;
+                case "C":
+                    return cidr >= 24 && cidr <= 32;
+                case "D":
+                    return cidr >= 24 && cidr <= 32;
+                case "E":
+                    return cidr >= 24 && cidr == 32;
+                default:
+                    return false;
+            }
+        }
+
+
+
+
+        private bool IsValidSubnetMask(byte[] maskBytes)
+        {
+            // Convertir le masque en une chaîne de bits
+            StringBuilder binaryMask = new StringBuilder();
+            foreach (byte b in maskBytes)
+            {
+                binaryMask.Append(Convert.ToString(b, 2).PadLeft(8, '0'));
+            }
+
+            // Vérifier si la chaîne de bits est continue
+            bool foundZero = false;
+            for (int i = 0; i < binaryMask.Length; i++)
+            {
+                if (binaryMask[i] == '0')
+                {
+                    foundZero = true;
+                }
+                else if (foundZero)
+                {
+                    // S'il y a un zéro après qu'on ait trouvé un zéro précédemment,
+                    // le masque n'est pas valide
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
 
         private void AfficherClasseIPetMasque(string ipAddress, int cidr)
         {
@@ -207,9 +322,14 @@ namespace SAE_2._03_Réseau
                 string derniereIPReseau = CalculerDerniereAdresseIPReseau(adresseBroadcast);
                 lblDmachine.Text = $"Dernière IP : {derniereIPReseau}";
 
+                // Calculer et afficher le nombre d'ips
+                int nombreIP = CalculerNombreIP(cidr);
+                lblnbIP.Text = $"Nombre d'adresses IP : {nombreIP}";
+
                 // Calculer et afficher le nombre de machines
-                int nombreMachines = CalculerNombreMachines(cidr);
-                lblnbMachine.Text = $"Nombre de machines : {nombreMachines}";
+                int nombreMachine = CalculerNombreMachines(cidr);
+                lblNbMachines.Text = $"Nombre de machines : {nombreMachine}";
+
             }
             else
             {
@@ -222,26 +342,59 @@ namespace SAE_2._03_Réseau
 
         private string ObtenirMasque(int cidr)
         {
+            // Calculer le masque en utilisant un entier 32 bits (0xFFFFFFFF)
             uint mask = 0xFFFFFFFF << (32 - cidr);
-            return $"{(mask >> 24) & 0xFF}.{(mask >> 16) & 0xFF}.{(mask >> 8) & 0xFF}.{mask & 0xFF}";
+
+            // Convertir le masque en une chaîne binaire de 32 bits
+            string binaireMasque = Convert.ToString((int)mask, 2).PadLeft(32, '0');
+
+            // Diviser la chaîne binaire en octets (8 bits) et les stocker dans un tableau
+            string[] octetsBinaires = new string[4];
+            for (int i = 0; i < 4; i++)
+            {
+                octetsBinaires[i] = binaireMasque.Substring(i * 8, 8);
+            }
+
+            // Convertir chaque octet binaire en décimal et les concaténer avec des points
+            string masque = string.Join(".", octetsBinaires.Select(octet => Convert.ToInt32(octet, 2)));
+
+            return masque;
         }
 
-        private string EnBinaire(string adresseIP)
-        {
-            string[] octets = adresseIP.Split('.');
-            string binaireIP = "";
 
+
+
+        private string EnBinaire(string masque)
+        {
+            // Séparer les octets du masque
+            string[] octets = masque.Split('.');
+
+            // Déclarer une variable pour stocker la représentation binaire du masque
+            string binaireMasque = "";
+
+            // Convertir chaque octet en binaire et les concaténer avec des points
             foreach (string octet in octets)
             {
-                string octetBinaire = Convert.ToString(int.Parse(octet), 2).PadLeft(8, '0');
-                binaireIP += octetBinaire + ".";
+                // Convertir l'octet en entier
+                int valeurOctet = int.Parse(octet);
+
+                // Convertir l'octet en binaire et le formater avec 8 chiffres
+                string binaireOctet = Convert.ToString(valeurOctet, 2).PadLeft(8, '0');
+
+                // Ajouter l'octet binaire à la représentation du masque avec un point
+                binaireMasque += binaireOctet + ".";
             }
 
             // Supprimer le dernier point ajouté
-            binaireIP = binaireIP.TrimEnd('.');
+            binaireMasque = binaireMasque.TrimEnd('.');
 
-            return binaireIP;
+            // Retourner la représentation binaire complète du masque de sous-réseau avec des points
+            return binaireMasque;
         }
+
+
+
+
 
         private int CalculerCIDRDepuisMasque(string subnetMask)
         {
@@ -279,9 +432,14 @@ namespace SAE_2._03_Réseau
             return adresseBroadcast;
         }
 
+        private int CalculerNombreIP(int cidr)
+        {
+            return (int)Math.Pow(2, (32 - cidr));
+        }
+
         private int CalculerNombreMachines(int cidr)
         {
-            return (int)Math.Pow(2, (32 - cidr)) -2;
+            return (int)Math.Pow(2, (32 - cidr)) -2 ;
         }
 
 
@@ -345,7 +503,7 @@ namespace SAE_2._03_Réseau
             lblMasquedesousreseau.Text = initialMasqueText;
             lblReseau.Text = initialReseauText;
             lblBroadcast.Text = initialBroadcastText;
-            lblnbMachine.Text = initialNbMachineText;
+            lblnbIP.Text = initialNbMachineText;
             lblIPB.Text = initialIPBText;
             lblMasqueB.Text = initialMasqueBText;
             lblPmachine.Text = initialPmachineText;
@@ -353,23 +511,40 @@ namespace SAE_2._03_Réseau
         }
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
-
+            panel1.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, panel1.Width, panel1.Height, 20, 20));
         }
 
         private bool IPSpeciale(string ipAddress, out string? message)
         {
-            if (specialIPRanges.TryGetValue(ipAddress, out string? specialMessage))
+            uint ip = ConvertIPToUInt32(ipAddress);
+
+            foreach (var range in specialIPRanges)
             {
-                message = $"L'adresse IP {ipAddress} est spéciale : {specialMessage}";
-                return true;
+                uint startIP = ConvertIPToUInt32(range.Start);
+                uint endIP = ConvertIPToUInt32(range.End);
+
+                if (ip >= startIP && ip <= endIP)
+                {
+                    message = $"L'adresse IP {ipAddress} est spéciale : {range.Description}";
+                    return true;
+                }
             }
+
             message = null;
             return false;
         }
 
+        private uint ConvertIPToUInt32(string ipAddress)
+        {
+            var segments = ipAddress.Split('.').Select(byte.Parse).ToArray();
+            return ((uint)segments[0] << 24) | ((uint)segments[1] << 16) | ((uint)segments[2] << 8) | segments[3];
+        }
+
+
         private bool ValidationIP(string ipAddress)
         {
-            string pattern = @"^(25[0-5]|2[0-4][0-9]|[1-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[1-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[1-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[1-9][0-9]?)$";
+            string pattern = @"^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$";
+
 
 
             return Regex.IsMatch(ipAddress, pattern);
@@ -410,7 +585,29 @@ namespace SAE_2._03_Réseau
             return string.Join(".", octetsBroadcast);
         }
 
+        private void lblNbMachines_Click(object sender, EventArgs e)
+        {
 
+        }
+
+        private void lblnbIP_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            ApplyRoundedCorners();
+        }
+        private void ApplyRoundedCorners()
+        {
+           
+            Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 30, 30));
+        }
+        private void Form1_Resize(object sender, EventArgs e)
+        {
+            ApplyRoundedCorners();
+        }
 
     }
 }

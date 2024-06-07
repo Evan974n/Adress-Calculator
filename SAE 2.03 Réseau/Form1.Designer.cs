@@ -30,21 +30,24 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
+            panel29 = new Panel();
+            panel25 = new Panel();
+            lblDmachine = new Label();
             panel27 = new Panel();
             panel28 = new Panel();
             lblMasquedesousreseau = new Label();
             panel24 = new Panel();
-            panel25 = new Panel();
-            lblDmachine = new Label();
-            panel22 = new Panel();
             panel23 = new Panel();
             lblPmachine = new Label();
+            panel22 = new Panel();
+            panel30 = new Panel();
+            lblNbMachines = new Label();
             panel20 = new Panel();
             panel21 = new Panel();
             lblMasqueB = new Label();
             panel18 = new Panel();
             panel19 = new Panel();
-            lblnbMachine = new Label();
+            lblnbIP = new Label();
             panel16 = new Panel();
             panel17 = new Panel();
             lblBroadcast = new Label();
@@ -83,12 +86,14 @@
             Btnretour = new Button();
             pnlB = new Panel();
             panel1.SuspendLayout();
+            panel29.SuspendLayout();
+            panel25.SuspendLayout();
             panel27.SuspendLayout();
             panel28.SuspendLayout();
             panel24.SuspendLayout();
-            panel25.SuspendLayout();
-            panel22.SuspendLayout();
             panel23.SuspendLayout();
+            panel22.SuspendLayout();
+            panel30.SuspendLayout();
             panel20.SuspendLayout();
             panel21.SuspendLayout();
             panel18.SuspendLayout();
@@ -117,6 +122,7 @@
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(218, 192, 163);
+            panel1.Controls.Add(panel29);
             panel1.Controls.Add(panel27);
             panel1.Controls.Add(panel24);
             panel1.Controls.Add(panel22);
@@ -142,9 +148,42 @@
             panel1.Location = new Point(8, 7);
             panel1.Margin = new Padding(2);
             panel1.Name = "panel1";
-            panel1.Size = new Size(621, 673);
+            panel1.Size = new Size(621, 734);
             panel1.TabIndex = 0;
             panel1.Paint += panel1_Paint;
+            // 
+            // panel29
+            // 
+            panel29.BackColor = Color.FromArgb(16, 44, 87);
+            panel29.Controls.Add(panel25);
+            panel29.Location = new Point(79, 628);
+            panel29.Margin = new Padding(2);
+            panel29.Name = "panel29";
+            panel29.Size = new Size(451, 30);
+            panel29.TabIndex = 20;
+            // 
+            // panel25
+            // 
+            panel25.AutoSize = true;
+            panel25.BackColor = Color.FromArgb(234, 219, 200);
+            panel25.Controls.Add(lblDmachine);
+            panel25.Location = new Point(2, 2);
+            panel25.Margin = new Padding(2);
+            panel25.Name = "panel25";
+            panel25.Size = new Size(447, 26);
+            panel25.TabIndex = 5;
+            // 
+            // lblDmachine
+            // 
+            lblDmachine.AutoSize = true;
+            lblDmachine.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            lblDmachine.ForeColor = Color.FromArgb(16, 44, 87);
+            lblDmachine.Location = new Point(2, 7);
+            lblDmachine.Margin = new Padding(2, 0, 2, 0);
+            lblDmachine.Name = "lblDmachine";
+            lblDmachine.Size = new Size(84, 14);
+            lblDmachine.TabIndex = 29;
+            lblDmachine.Text = "Dernière IP...";
             // 
             // panel27
             // 
@@ -182,45 +221,12 @@
             // panel24
             // 
             panel24.BackColor = Color.FromArgb(16, 44, 87);
-            panel24.Controls.Add(panel25);
+            panel24.Controls.Add(panel23);
             panel24.Location = new Point(79, 584);
             panel24.Margin = new Padding(2);
             panel24.Name = "panel24";
             panel24.Size = new Size(451, 30);
             panel24.TabIndex = 19;
-            // 
-            // panel25
-            // 
-            panel25.AutoSize = true;
-            panel25.BackColor = Color.FromArgb(234, 219, 200);
-            panel25.Controls.Add(lblDmachine);
-            panel25.Location = new Point(2, 2);
-            panel25.Margin = new Padding(2);
-            panel25.Name = "panel25";
-            panel25.Size = new Size(447, 26);
-            panel25.TabIndex = 5;
-            // 
-            // lblDmachine
-            // 
-            lblDmachine.AutoSize = true;
-            lblDmachine.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblDmachine.ForeColor = Color.FromArgb(16, 44, 87);
-            lblDmachine.Location = new Point(2, 7);
-            lblDmachine.Margin = new Padding(2, 0, 2, 0);
-            lblDmachine.Name = "lblDmachine";
-            lblDmachine.Size = new Size(84, 14);
-            lblDmachine.TabIndex = 29;
-            lblDmachine.Text = "Dernière IP...";
-            // 
-            // panel22
-            // 
-            panel22.BackColor = Color.FromArgb(16, 44, 87);
-            panel22.Controls.Add(panel23);
-            panel22.Location = new Point(79, 539);
-            panel22.Margin = new Padding(2);
-            panel22.Name = "panel22";
-            panel22.Size = new Size(451, 30);
-            panel22.TabIndex = 19;
             // 
             // panel23
             // 
@@ -244,6 +250,40 @@
             lblPmachine.Size = new Size(87, 14);
             lblPmachine.TabIndex = 28;
             lblPmachine.Text = "Première IP...";
+            // 
+            // panel22
+            // 
+            panel22.BackColor = Color.FromArgb(16, 44, 87);
+            panel22.Controls.Add(panel30);
+            panel22.Location = new Point(79, 539);
+            panel22.Margin = new Padding(2);
+            panel22.Name = "panel22";
+            panel22.Size = new Size(451, 30);
+            panel22.TabIndex = 19;
+            // 
+            // panel30
+            // 
+            panel30.AutoSize = true;
+            panel30.BackColor = Color.FromArgb(234, 219, 200);
+            panel30.Controls.Add(lblNbMachines);
+            panel30.Location = new Point(2, 2);
+            panel30.Margin = new Padding(2);
+            panel30.Name = "panel30";
+            panel30.Size = new Size(447, 26);
+            panel30.TabIndex = 6;
+            // 
+            // lblNbMachines
+            // 
+            lblNbMachines.AutoSize = true;
+            lblNbMachines.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            lblNbMachines.ForeColor = Color.FromArgb(16, 44, 87);
+            lblNbMachines.Location = new Point(2, 7);
+            lblNbMachines.Margin = new Padding(2, 0, 2, 0);
+            lblNbMachines.Name = "lblNbMachines";
+            lblNbMachines.Size = new Size(135, 14);
+            lblNbMachines.TabIndex = 29;
+            lblNbMachines.Text = "Nombre de Machine...";
+            lblNbMachines.Click += lblNbMachines_Click;
             // 
             // panel20
             // 
@@ -292,24 +332,25 @@
             // 
             panel19.AutoSize = true;
             panel19.BackColor = Color.FromArgb(234, 219, 200);
-            panel19.Controls.Add(lblnbMachine);
+            panel19.Controls.Add(lblnbIP);
             panel19.Location = new Point(2, 2);
             panel19.Margin = new Padding(2);
             panel19.Name = "panel19";
             panel19.Size = new Size(447, 26);
             panel19.TabIndex = 5;
             // 
-            // lblnbMachine
+            // lblnbIP
             // 
-            lblnbMachine.AutoSize = true;
-            lblnbMachine.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblnbMachine.ForeColor = Color.FromArgb(16, 44, 87);
-            lblnbMachine.Location = new Point(2, 8);
-            lblnbMachine.Margin = new Padding(2, 0, 2, 0);
-            lblnbMachine.Name = "lblnbMachine";
-            lblnbMachine.Size = new Size(92, 14);
-            lblnbMachine.TabIndex = 27;
-            lblnbMachine.Text = "Nombre d'IP...";
+            lblnbIP.AutoSize = true;
+            lblnbIP.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            lblnbIP.ForeColor = Color.FromArgb(16, 44, 87);
+            lblnbIP.Location = new Point(2, 8);
+            lblnbIP.Margin = new Padding(2, 0, 2, 0);
+            lblnbIP.Name = "lblnbIP";
+            lblnbIP.Size = new Size(92, 14);
+            lblnbIP.TabIndex = 27;
+            lblnbIP.Text = "Nombre d'IP...";
+            lblnbIP.Click += lblnbIP_Click;
             // 
             // panel16
             // 
@@ -499,7 +540,7 @@
             btbnCalculer.FlatStyle = FlatStyle.Flat;
             btbnCalculer.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
             btbnCalculer.ForeColor = Color.FromArgb(16, 44, 87);
-            btbnCalculer.Location = new Point(253, 629);
+            btbnCalculer.Location = new Point(253, 695);
             btbnCalculer.Margin = new Padding(2);
             btbnCalculer.Name = "btbnCalculer";
             btbnCalculer.Size = new Size(108, 28);
@@ -748,27 +789,32 @@
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(16, 44, 87);
-            ClientSize = new Size(638, 689);
+            ClientSize = new Size(638, 752);
             Controls.Add(panel1);
             Controls.Add(pnlB);
             FormBorderStyle = FormBorderStyle.None;
             Margin = new Padding(2);
             Name = "Form1";
             Text = "Calculateur de masque réseau";
+            Load += Form1_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            panel29.ResumeLayout(false);
+            panel29.PerformLayout();
+            panel25.ResumeLayout(false);
+            panel25.PerformLayout();
             panel27.ResumeLayout(false);
             panel27.PerformLayout();
             panel28.ResumeLayout(false);
             panel28.PerformLayout();
             panel24.ResumeLayout(false);
             panel24.PerformLayout();
-            panel25.ResumeLayout(false);
-            panel25.PerformLayout();
-            panel22.ResumeLayout(false);
-            panel22.PerformLayout();
             panel23.ResumeLayout(false);
             panel23.PerformLayout();
+            panel22.ResumeLayout(false);
+            panel22.PerformLayout();
+            panel30.ResumeLayout(false);
+            panel30.PerformLayout();
             panel20.ResumeLayout(false);
             panel20.PerformLayout();
             panel21.ResumeLayout(false);
@@ -864,10 +910,13 @@
         private Label lblDmachine;
         private Label lblPmachine;
         private Label lblMasqueB;
-        private Label lblnbMachine;
+        private Label lblnbIP;
         private Label lblBroadcast;
         private Label lblReseau;
         private Label lblIPB;
         private Label lblClasse;
+        private Panel panel29;
+        private Panel panel30;
+        private Label lblNbMachines;
     }
 }
