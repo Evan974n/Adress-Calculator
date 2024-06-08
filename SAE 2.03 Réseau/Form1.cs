@@ -42,12 +42,12 @@ namespace SAE_2._03_Réseau
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn
         (
-            int nLeftRect,     
-            int nTopRect,      
-            int nRightRect,    
-            int nBottomRect,   
-            int nWidthEllipse, 
-            int nHeightEllipse 
+            int nLeftRect,     // x-coordinate of upper-left corner
+            int nTopRect,      // y-coordinate of upper-left corner
+            int nRightRect,    // x-coordinate of lower-right corner
+            int nBottomRect,   // y-coordinate of lower-right corner
+            int nWidthEllipse, // width of ellipse
+            int nHeightEllipse // height of ellipse
         );
         public Form1()
         {
@@ -75,13 +75,11 @@ namespace SAE_2._03_Réseau
             this.Close();
         }
 
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
 
-        }
 
         private static string ObtenirClasseIP(string ipAddress)
         {
+
             // Séparer les octets de l'adresse IP
             string[] octets = ipAddress.Split('.');
             int firstOctet = int.Parse(octets[0]);
@@ -112,124 +110,199 @@ namespace SAE_2._03_Réseau
             }
         }
 
-        private void textBox1_TextChanged_1(object sender, EventArgs e)
-        {
 
-        }
 
-        private void textBox1_TextChanged_2(object sender, EventArgs e)
-        {
 
-        }
 
         private void btbnCalculer_Click(object sender, EventArgs e)
         {
-
-
-            string masqueInput = txtboxMasque.Text;
-            string ip2Input = txtboxIP2.Text;
-            string cidrInput = txtboxCIDR.Text;
-            string ipInput = txtboxIP.Text;
-            // Vérifier si le masque est vide et si le CIDR est fourni
-            if (string.IsNullOrWhiteSpace(masqueInput) && !string.IsNullOrWhiteSpace(cidrInput))
+            try
             {
-                if (int.TryParse(cidrInput, out int cidr))
+                string masqueInput = txtboxMasque.Text;
+                string ip2Input = txtboxIP2.Text;
+                string cidrInput = txtboxCIDR.Text;
+                string ipInput = txtboxIP.Text;
+
+                // Vérifier si les champs IP1 et CIDR sont remplis
+                bool isIPAndCIDRProvided = !string.IsNullOrWhiteSpace(ipInput) && !string.IsNullOrWhiteSpace(cidrInput);
+
+                // Vérifier si les champs IP2 et Masque sont remplis
+                bool isIP2AndMasqueProvided = !string.IsNullOrWhiteSpace(ip2Input) && !string.IsNullOrWhiteSpace(masqueInput);
+
+                // Vérifier si les deux ensembles de champs sont remplis
+                if (isIPAndCIDRProvided && isIP2AndMasqueProvided)
                 {
-                    try
+                    MessageBox.Show("Veuillez remplir soit les champs IP1 et CIDR, soit les champs IP2 et Masque, mais pas les deux ensembles.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                // Vérifier si des champs supplémentaires sont remplis
+                if (isIPAndCIDRProvided && (!string.IsNullOrWhiteSpace(ip2Input) || !string.IsNullOrWhiteSpace(masqueInput)))
+                {
+                    MessageBox.Show("Si vous remplissez les champs IP1 et CIDR, veuillez laisser les champs IP2 et Masque vides.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (isIP2AndMasqueProvided && (!string.IsNullOrWhiteSpace(ipInput) || !string.IsNullOrWhiteSpace(cidrInput)))
+                {
+                    MessageBox.Show("Si vous remplissez les champs IP2 et Masque, veuillez laisser les champs IP1 et CIDR vides.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                if (isIPAndCIDRProvided)
+                {
+                    // Valider IP et CIDR
+                    if (!ValidationIP(ipInput))
                     {
-                        // Convertir le CIDR en masque de sous-réseau
-                        masqueInput = ObtenirMasque(cidr);
-                    }
-                    catch (ArgumentException ex)
-                    {
-                        MessageBox.Show(ex.Message, "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show("Le format de l'adresse IP est invalide. Veuillez entrer une adresse IP valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
+                    else if (!ValidationCIDR(cidrInput))
+                    {
+                        MessageBox.Show("Le format du CIDR est invalide. Veuillez entrer un CIDR valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Vérifier la correspondance du CIDR avec la classe de l'IP
+                    string ipClass = ObtenirClasseIP(ipInput);
+                    int cidrValue = int.Parse(cidrInput);
+
+                    if (!ValidationCIDRPourClasse(ipClass, cidrValue))
+                    {
+                        MessageBox.Show($"Le CIDR {cidrValue} n'est pas valide pour une adresse IP de classe {ipClass}.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Vérifier si l'adresse IP appartient à une plage spéciale
+                    if (IPSpeciale(ipInput, out string? specialMessage))
+                    {
+                        MessageBox.Show(specialMessage, "Adresse IP spéciale", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+
+                    // Si validation réussie, calculer et afficher la classe IP et le masque de sous-réseau
+                    AfficherClasseIPetMasque(ipInput, cidrValue);
+
+                    // Affecter la valeur du CIDR à lblCIDR
+                    lblCIDR.Text = cidrInput;
+                }
+                else if (isIP2AndMasqueProvided)
+                {
+                    // Valider IP2
+                    if (!ValidationIP(ip2Input))
+                    {
+                        MessageBox.Show("Le format de l'adresse IP secondaire est invalide. Veuillez entrer une adresse IP valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Valider le masque de sous-réseau
+                    if (!ValidationIP(masqueInput))
+                    {
+                        MessageBox.Show("Le format du masque de sous-réseau est invalide. Veuillez entrer un masque de sous-réseau valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Convertir le masque en octets et valider
+                    byte[] masqueBytes = masqueInput.Split('.').Select(byte.Parse).ToArray();
+                    if (!IsValidSubnetMask(masqueBytes))
+                    {
+                        MessageBox.Show("Le masque de sous-réseau n'est pas valide. Veuillez entrer un masque de sous-réseau continu.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Affecter le CIDR correspondant au masque à lblCIDR
+                    lblCIDR.Text = CalculerCIDRDepuisMasque(masqueBytes).ToString();
+
+                    // Vérifier la correspondance du masque avec la classe de l'IP
+                    string ipClass = ObtenirClasseIP(ip2Input);
+                    if (!ValidationMasquePourClasse(ipClass, masqueBytes))
+                    {
+                        MessageBox.Show($"Le masque de sous-réseau {masqueInput} n'est pas valide pour une adresse IP de classe {ipClass}.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    // Si validation réussie, calculer et afficher la classe IP pour ip2Input
+                    AfficherClasseIPetMasque(ip2Input, CalculerCIDRDepuisMasque(masqueBytes));
                 }
                 else
                 {
-                    MessageBox.Show("Le CIDR n'est pas valide. Veuillez entrer un CIDR valide (entre 8 et 32).", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Veuillez remplir soit les champs IP1 et CIDR, soit les champs IP2 et Masque.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
             }
-
-            // Convertir le masque en une chaîne binaire de bits
-            byte[] masqueBytes = Array.ConvertAll(masqueInput.Split('.'), byte.Parse);
-
-            // Valider le masque de sous-réseau en utilisant la méthode IsValidSubnetMask
-            if (!IsValidSubnetMask(masqueBytes))
+            catch (Exception ex)
             {
-                MessageBox.Show($"Le masque {masqueInput} n'est pas valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
-            }
-            // Vérifier si les champs IP et CIDR sont remplis
-            bool isIPAndCIDRProvided = !string.IsNullOrWhiteSpace(ipInput) && !string.IsNullOrWhiteSpace(cidrInput);
-
-            // Vérifier si les champs IP2 et Masque sont remplis
-            bool isIP2AndMasqueProvided = !string.IsNullOrWhiteSpace(ip2Input) && !string.IsNullOrWhiteSpace(masqueInput);
-
-            if (isIPAndCIDRProvided && isIP2AndMasqueProvided)
-            {
-                MessageBox.Show("Veuillez remplir soit les champs IP et CIDR, soit les champs IP2 et Masque, mais pas les deux ensembles.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // Sortir de la méthode si les deux ensembles de champs sont remplis
-            }
-            else if (isIPAndCIDRProvided)
-            {
-                // Valider IP et CIDR
-                if (!ValidationIP(ipInput))
-                {
-                    MessageBox.Show("Le format de l'adresse IP est invalide. Veuillez entrer une adresse IP valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Sortir de la méthode si l'adresse IP est invalide
-                }
-                else if (!ValidationCIDR(cidrInput))
-                {
-                    MessageBox.Show("Le format du CIDR est invalide. Veuillez entrer un CIDR valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Sortir de la méthode si le CIDR est invalide
-                }
-
-                // Vérifier la correspondance du CIDR avec la classe de l'IP
-                string ipClass = ObtenirClasseIP(ipInput);
-                int cidrValue = int.Parse(cidrInput);
-
-                if (!ValidationCIDRPourClasse(ipClass, cidrValue))
-                {
-                    MessageBox.Show($"Le CIDR {cidrValue} n'est pas valide pour une adresse IP de classe {ipClass}.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Sortir de la méthode si le CIDR ne correspond pas à la classe de l'IP
-                }
-
-                // Vérifier si l'adresse IP appartient à une plage spéciale
-                if (IPSpeciale(ipInput, out string? specialMessage))
-                {
-                    MessageBox.Show(specialMessage, "Adresse IP spéciale", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-
-                // Si validation réussie, calculer et afficher la classe IP et le masque de sous-réseau
-                AfficherClasseIPetMasque(ipInput, cidrValue);
-            }
-            else if (isIP2AndMasqueProvided)
-            {
-                // Valider IP2 et Masque
-                if (!ValidationIP(ip2Input))
-                {
-                    MessageBox.Show("Le format de l'adresse IP secondaire est invalide. Veuillez entrer une adresse IP valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Sortir de la méthode si l'adresse IP secondaire est invalide
-                }
-                else if (!IsValidSubnetMask(masqueBytes))
-                {
-                    MessageBox.Show($"Le masque {masqueInput} n'est pas valide.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return; // Sortir de la méthode si le masque de sous-réseau est invalide
-                }
-
-                // Si validation réussie, calculer et afficher la classe IP pour ip2Input
-                AfficherClasseIPetMasque(ip2Input, CalculerCIDRDepuisMasque(masqueInput));
-            }
-            else
-            {
-                MessageBox.Show("Veuillez remplir soit les champs IP et CIDR, soit les champs IP2 et Masque.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return; // Sortir de la méthode si aucun ensemble de champs n'est rempli
+                MessageBox.Show($"Une erreur s'est produite : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
+
+        private bool ValidationMasquePourClasse(string ipClass, byte[] maskBytes)
+        {
+            string mask = string.Join(".", maskBytes.Select(b => b.ToString()));
+
+            switch (ipClass)
+            {
+                case "A":
+                    if ((mask.CompareTo("255.0.0.0") >= 0 && mask.CompareTo("255.255.255.255") <= 0))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "B":
+                    if ((mask.CompareTo("255.255.0.0") >= 0 && mask.CompareTo("255.255.255.255") <= 0))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "C":
+                    if ((mask.CompareTo("255.255.255.0") >= 0 && mask.CompareTo("255.255.255.255") <= 0))
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "D":
+                    if ((mask.CompareTo("255.255.255.0") >= 0 && mask.CompareTo("255.255.255.240") <= 0) || mask == "255.255.255.255")
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                case "E":
+                    if (mask == "255.255.255.255")
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                default:
+                    return false;
+            }
+        }
+
+
+
+        private int CalculerCIDRDepuisMasque(byte[] maskBytes)
+        {
+            int cidr = 0;
+            foreach (byte b in maskBytes)
+            {
+                cidr += Convert.ToString(b, 2).Count(bit => bit == '1');
+            }
+            return cidr;
+        }
 
 
 
@@ -330,6 +403,17 @@ namespace SAE_2._03_Réseau
                 int nombreMachine = CalculerNombreMachines(cidr);
                 lblNbMachines.Text = $"Nombre de machines : {nombreMachine}";
 
+                if (!string.IsNullOrWhiteSpace(txtboxIP.Text) && !string.IsNullOrWhiteSpace(txtboxCIDR.Text))
+                {
+
+                    lblCIDR.Text = $"CIDR : {cidr}";
+                }
+                else if (!string.IsNullOrWhiteSpace(txtboxIP2.Text) && !string.IsNullOrWhiteSpace(txtboxMasque.Text))
+                {
+                    // Récupérer le CIDR correspondant au masque
+                    int cidrFromMask = CalculerCIDRDepuisMasque(subnetMask);
+                    lblCIDR.Text = $"CIDR : {cidrFromMask}";
+                }
             }
             else
             {
@@ -439,7 +523,7 @@ namespace SAE_2._03_Réseau
 
         private int CalculerNombreMachines(int cidr)
         {
-            return (int)Math.Pow(2, (32 - cidr)) -2 ;
+            return (int)Math.Pow(2, (32 - cidr)) - 2;
         }
 
 
@@ -497,7 +581,7 @@ namespace SAE_2._03_Réseau
             txtboxCIDR.Text = string.Empty;
             txtboxIP.Text = string.Empty;
 
-            // Restaurer les valeurs initiales des labels
+            // Réinitialiser les valeurs des labels
             lblClasse.Text = initialClasseText;
             lblAdresseIP.Text = initialAdresseIPText;
             lblMasquedesousreseau.Text = initialMasqueText;
@@ -508,9 +592,17 @@ namespace SAE_2._03_Réseau
             lblMasqueB.Text = initialMasqueBText;
             lblPmachine.Text = initialPmachineText;
             lblDmachine.Text = initialDmachineText;
+
+            // Réinitialiser le CIDR
+            lblCIDR.Text = string.Empty;
+
+            // Réinitialiser le nombre de machines
+            lblNbMachines.Text = string.Empty;
         }
+
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
+            // Set the region of the panel to be rounded
             panel1.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, panel1.Width, panel1.Height, 20, 20));
         }
 
@@ -556,10 +648,6 @@ namespace SAE_2._03_Réseau
             return Regex.IsMatch(cidr, pattern);
         }
 
-        private void lblClasse_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private string CalculerPremiereAdresseIPReseau(string adresseReseau)
         {
@@ -585,15 +673,6 @@ namespace SAE_2._03_Réseau
             return string.Join(".", octetsBroadcast);
         }
 
-        private void lblNbMachines_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void lblnbIP_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -601,13 +680,19 @@ namespace SAE_2._03_Réseau
         }
         private void ApplyRoundedCorners()
         {
-           
+            // Set the region of the form to be rounded
             Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 30, 30));
         }
         private void Form1_Resize(object sender, EventArgs e)
         {
             ApplyRoundedCorners();
         }
+
+        private void CIDRdonne_Click(object sender, EventArgs e)
+        {
+
+        }
+
 
     }
 }

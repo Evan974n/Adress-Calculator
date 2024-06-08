@@ -30,6 +30,11 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             panel1 = new Panel();
+            panel31 = new Panel();
+            lblCIDR = new Label();
+            panel32 = new Panel();
+            panel13 = new Panel();
+            lblClasse = new Label();
             panel29 = new Panel();
             panel25 = new Panel();
             lblDmachine = new Label();
@@ -59,12 +64,10 @@
             panel14 = new Panel();
             lblIPB = new Label();
             panel12 = new Panel();
-            panel13 = new Panel();
-            lblClasse = new Label();
             pnlAdresseIP = new Panel();
             panel11 = new Panel();
             lblAdresseIP = new Label();
-            btbnCalculer = new Button();
+            btnCalculer = new Button();
             pnlbarre = new Panel();
             panel26 = new Panel();
             lblOU = new Label();
@@ -86,6 +89,8 @@
             Btnretour = new Button();
             pnlB = new Panel();
             panel1.SuspendLayout();
+            panel31.SuspendLayout();
+            panel13.SuspendLayout();
             panel29.SuspendLayout();
             panel25.SuspendLayout();
             panel27.SuspendLayout();
@@ -104,8 +109,6 @@
             panel15.SuspendLayout();
             panel9.SuspendLayout();
             panel14.SuspendLayout();
-            panel12.SuspendLayout();
-            panel13.SuspendLayout();
             pnlAdresseIP.SuspendLayout();
             panel11.SuspendLayout();
             pnlbarre.SuspendLayout();
@@ -122,6 +125,9 @@
             // panel1
             // 
             panel1.BackColor = Color.FromArgb(218, 192, 163);
+            panel1.Controls.Add(panel31);
+            panel1.Controls.Add(panel32);
+            panel1.Controls.Add(panel13);
             panel1.Controls.Add(panel29);
             panel1.Controls.Add(panel27);
             panel1.Controls.Add(panel24);
@@ -134,7 +140,7 @@
             panel1.Controls.Add(panel9);
             panel1.Controls.Add(panel12);
             panel1.Controls.Add(pnlAdresseIP);
-            panel1.Controls.Add(btbnCalculer);
+            panel1.Controls.Add(btnCalculer);
             panel1.Controls.Add(pnlbarre);
             panel1.Controls.Add(lblOU);
             panel1.Controls.Add(label2);
@@ -151,6 +157,60 @@
             panel1.Size = new Size(621, 734);
             panel1.TabIndex = 0;
             panel1.Paint += panel1_Paint;
+            // 
+            // panel31
+            // 
+            panel31.BackColor = Color.FromArgb(234, 219, 200);
+            panel31.Controls.Add(lblCIDR);
+            panel31.Location = new Point(418, 211);
+            panel31.Margin = new Padding(2);
+            panel31.Name = "panel31";
+            panel31.Size = new Size(110, 26);
+            panel31.TabIndex = 21;
+            // 
+            // lblCIDR
+            // 
+            lblCIDR.AutoSize = true;
+            lblCIDR.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            lblCIDR.ForeColor = Color.FromArgb(16, 44, 87);
+            lblCIDR.Location = new Point(6, 8);
+            lblCIDR.Margin = new Padding(2, 0, 2, 0);
+            lblCIDR.Name = "lblCIDR";
+            lblCIDR.Size = new Size(50, 14);
+            lblCIDR.TabIndex = 21;
+            lblCIDR.Text = "CIDR...";
+            lblCIDR.Click += CIDRdonne_Click;
+            // 
+            // panel32
+            // 
+            panel32.BackColor = Color.FromArgb(16, 44, 87);
+            panel32.Location = new Point(416, 209);
+            panel32.Margin = new Padding(2);
+            panel32.Name = "panel32";
+            panel32.Size = new Size(114, 30);
+            panel32.TabIndex = 22;
+            // 
+            // panel13
+            // 
+            panel13.BackColor = Color.FromArgb(234, 219, 200);
+            panel13.Controls.Add(lblClasse);
+            panel13.Location = new Point(301, 211);
+            panel13.Margin = new Padding(2);
+            panel13.Name = "panel13";
+            panel13.Size = new Size(110, 26);
+            panel13.TabIndex = 8;
+            // 
+            // lblClasse
+            // 
+            lblClasse.AutoSize = true;
+            lblClasse.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            lblClasse.ForeColor = Color.FromArgb(16, 44, 87);
+            lblClasse.Location = new Point(6, 8);
+            lblClasse.Margin = new Padding(2, 0, 2, 0);
+            lblClasse.Name = "lblClasse";
+            lblClasse.Size = new Size(59, 14);
+            lblClasse.TabIndex = 21;
+            lblClasse.Text = "Classe...";
             // 
             // panel29
             // 
@@ -283,7 +343,6 @@
             lblNbMachines.Size = new Size(135, 14);
             lblNbMachines.TabIndex = 29;
             lblNbMachines.Text = "Nombre de Machine...";
-            lblNbMachines.Click += lblNbMachines_Click;
             // 
             // panel20
             // 
@@ -350,7 +409,6 @@
             lblnbIP.Size = new Size(92, 14);
             lblnbIP.TabIndex = 27;
             lblnbIP.Text = "Nombre d'IP...";
-            lblnbIP.Click += lblnbIP_Click;
             // 
             // panel16
             // 
@@ -470,35 +528,11 @@
             // panel12
             // 
             panel12.BackColor = Color.FromArgb(16, 44, 87);
-            panel12.Controls.Add(panel13);
-            panel12.Location = new Point(349, 209);
+            panel12.Location = new Point(299, 209);
             panel12.Margin = new Padding(2);
             panel12.Name = "panel12";
-            panel12.Size = new Size(181, 30);
+            panel12.Size = new Size(114, 30);
             panel12.TabIndex = 16;
-            // 
-            // panel13
-            // 
-            panel13.BackColor = Color.FromArgb(234, 219, 200);
-            panel13.Controls.Add(lblClasse);
-            panel13.Location = new Point(2, 2);
-            panel13.Margin = new Padding(2);
-            panel13.Name = "panel13";
-            panel13.Size = new Size(177, 26);
-            panel13.TabIndex = 8;
-            // 
-            // lblClasse
-            // 
-            lblClasse.AutoSize = true;
-            lblClasse.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            lblClasse.ForeColor = Color.FromArgb(16, 44, 87);
-            lblClasse.Location = new Point(6, 8);
-            lblClasse.Margin = new Padding(2, 0, 2, 0);
-            lblClasse.Name = "lblClasse";
-            lblClasse.Size = new Size(59, 14);
-            lblClasse.TabIndex = 21;
-            lblClasse.Text = "Classe...";
-            lblClasse.Click += lblClasse_Click;
             // 
             // pnlAdresseIP
             // 
@@ -507,7 +541,7 @@
             pnlAdresseIP.Location = new Point(79, 209);
             pnlAdresseIP.Margin = new Padding(2);
             pnlAdresseIP.Name = "pnlAdresseIP";
-            pnlAdresseIP.Size = new Size(256, 30);
+            pnlAdresseIP.Size = new Size(218, 30);
             pnlAdresseIP.TabIndex = 15;
             // 
             // panel11
@@ -518,7 +552,7 @@
             panel11.Location = new Point(2, 2);
             panel11.Margin = new Padding(2);
             panel11.Name = "panel11";
-            panel11.Size = new Size(252, 26);
+            panel11.Size = new Size(214, 26);
             panel11.TabIndex = 5;
             // 
             // lblAdresseIP
@@ -533,21 +567,22 @@
             lblAdresseIP.TabIndex = 20;
             lblAdresseIP.Text = "Adresse IP...";
             // 
-            // btbnCalculer
+            // btnCalculer
             // 
-            btbnCalculer.BackColor = Color.FromArgb(234, 219, 200);
-            btbnCalculer.FlatAppearance.BorderSize = 3;
-            btbnCalculer.FlatStyle = FlatStyle.Flat;
-            btbnCalculer.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
-            btbnCalculer.ForeColor = Color.FromArgb(16, 44, 87);
-            btbnCalculer.Location = new Point(253, 695);
-            btbnCalculer.Margin = new Padding(2);
-            btbnCalculer.Name = "btbnCalculer";
-            btbnCalculer.Size = new Size(108, 28);
-            btbnCalculer.TabIndex = 14;
-            btbnCalculer.Text = "Calculer";
-            btbnCalculer.UseVisualStyleBackColor = false;
-            btbnCalculer.Enter += btbnCalculer_Click;
+            btnCalculer.AccessibleName = "";
+            btnCalculer.BackColor = Color.FromArgb(234, 219, 200);
+            btnCalculer.FlatAppearance.BorderSize = 3;
+            btnCalculer.FlatStyle = FlatStyle.Flat;
+            btnCalculer.Font = new Font("Arial Rounded MT Bold", 9F, FontStyle.Regular, GraphicsUnit.Point);
+            btnCalculer.ForeColor = Color.FromArgb(16, 44, 87);
+            btnCalculer.Location = new Point(253, 695);
+            btnCalculer.Margin = new Padding(2);
+            btnCalculer.Name = "btnCalculer";
+            btnCalculer.Size = new Size(108, 28);
+            btnCalculer.TabIndex = 14;
+            btnCalculer.Text = "Calculer";
+            btnCalculer.UseVisualStyleBackColor = false;
+            btnCalculer.Enter += btbnCalculer_Click;
             // 
             // pnlbarre
             // 
@@ -624,7 +659,6 @@
             txtboxMasque.PlaceholderText = "Masque...";
             txtboxMasque.Size = new Size(160, 14);
             txtboxMasque.TabIndex = 0;
-            txtboxMasque.TextChanged += textBox1_TextChanged_2;
             // 
             // panel7
             // 
@@ -706,7 +740,6 @@
             txtboxCIDR.PlaceholderText = "CIDR...";
             txtboxCIDR.Size = new Size(160, 14);
             txtboxCIDR.TabIndex = 0;
-            txtboxCIDR.TextChanged += textBox1_TextChanged_1;
             // 
             // panel3
             // 
@@ -743,7 +776,6 @@
             txtboxIP.PlaceholderText = "IPV4...";
             txtboxIP.Size = new Size(248, 14);
             txtboxIP.TabIndex = 4;
-            txtboxIP.TextChanged += textBox2_TextChanged;
             // 
             // label1
             // 
@@ -799,6 +831,10 @@
             Load += Form1_Load;
             panel1.ResumeLayout(false);
             panel1.PerformLayout();
+            panel31.ResumeLayout(false);
+            panel31.PerformLayout();
+            panel13.ResumeLayout(false);
+            panel13.PerformLayout();
             panel29.ResumeLayout(false);
             panel29.PerformLayout();
             panel25.ResumeLayout(false);
@@ -835,9 +871,6 @@
             panel9.PerformLayout();
             panel14.ResumeLayout(false);
             panel14.PerformLayout();
-            panel12.ResumeLayout(false);
-            panel13.ResumeLayout(false);
-            panel13.PerformLayout();
             pnlAdresseIP.ResumeLayout(false);
             pnlAdresseIP.PerformLayout();
             panel11.ResumeLayout(false);
@@ -881,7 +914,7 @@
         private Panel panel8;
         private TextBox txtboxIP2;
         private Panel pnlbarre;
-        private Button btbnCalculer;
+        private Button btnCalculer;
         private Panel pnlB;
         private Panel panel12;
         private Panel panel13;
@@ -918,5 +951,8 @@
         private Panel panel29;
         private Panel panel30;
         private Label lblNbMachines;
+        private Panel panel31;
+        private Label lblCIDR;
+        private Panel panel32;
     }
 }
