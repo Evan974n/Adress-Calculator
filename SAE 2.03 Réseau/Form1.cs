@@ -18,6 +18,8 @@ namespace SAE_2._03_Réseau
         private string initialMasqueBText;
         private string initialPmachineText;
         private string initialDmachineText;
+        private string initialCIDRText;
+        private string initialNbMachinesText;
         private Point startPoint;
 
         private readonly List<(string Start, string End, string Description)> specialIPRanges = new List<(string, string, string)>
@@ -54,8 +56,6 @@ namespace SAE_2._03_Réseau
             InitializeComponent();
 
             this.FormBorderStyle = FormBorderStyle.None;
-            this.Load += new EventHandler(Form1_Load);
-            this.Resize += new EventHandler(Form1_Resize);
 
             // Stockez les valeurs initiales des labels
             initialClasseText = lblClasse.Text;
@@ -68,6 +68,8 @@ namespace SAE_2._03_Réseau
             initialMasqueBText = lblMasqueB.Text;
             initialPmachineText = lblPmachine.Text;
             initialDmachineText = lblDmachine.Text;
+            initialCIDRText = lblCIDR.Text; // Sauvegarder la valeur initiale de lblCIDR
+            initialNbMachinesText = lblNbMachines.Text;
         }
 
         private void Btnretour_Click(object sender, EventArgs e)
@@ -183,7 +185,7 @@ namespace SAE_2._03_Réseau
                     AfficherClasseIPetMasque(ipInput, cidrValue);
 
                     // Affecter la valeur du CIDR à lblCIDR
-                    lblCIDR.Text = cidrInput;
+                    lblCIDR.Text = $"CIDR : {cidrInput}";
                 }
                 else if (isIP2AndMasqueProvided)
                 {
@@ -201,16 +203,22 @@ namespace SAE_2._03_Réseau
                         return;
                     }
 
+                    // Vérifier si l'adresse IP2 appartient à une plage spéciale
+                    if (IPSpeciale(ip2Input, out string? specialMessage))
+                    {
+                        MessageBox.Show(specialMessage, "Adresse IP spéciale", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+
                     // Convertir le masque en octets et valider
                     byte[] masqueBytes = masqueInput.Split('.').Select(byte.Parse).ToArray();
-                    if (!IsValidSubnetMask(masqueBytes))
+                    if (!ValidationMasqueReseau(masqueBytes))
                     {
                         MessageBox.Show("Le masque de sous-réseau n'est pas valide. Veuillez entrer un masque de sous-réseau continu.", "Erreur de validation", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         return;
                     }
 
                     // Affecter le CIDR correspondant au masque à lblCIDR
-                    lblCIDR.Text = CalculerCIDRDepuisMasque(masqueBytes).ToString();
+                    lblCIDR.Text = $"CIDR : {CalculerCIDRDepuisMasque(masqueBytes).ToString()}";
 
                     // Vérifier la correspondance du masque avec la classe de l'IP
                     string ipClass = ObtenirClasseIP(ip2Input);
@@ -222,6 +230,8 @@ namespace SAE_2._03_Réseau
 
                     // Si validation réussie, calculer et afficher la classe IP pour ip2Input
                     AfficherClasseIPetMasque(ip2Input, CalculerCIDRDepuisMasque(masqueBytes));
+
+                    // Autres opérations ...
                 }
                 else
                 {
@@ -234,6 +244,7 @@ namespace SAE_2._03_Réseau
                 MessageBox.Show($"Une erreur s'est produite : {ex.Message}", "Erreur", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
 
         private bool ValidationMasquePourClasse(string ipClass, byte[] maskBytes)
@@ -331,7 +342,7 @@ namespace SAE_2._03_Réseau
 
 
 
-        private bool IsValidSubnetMask(byte[] maskBytes)
+        private bool ValidationMasqueReseau(byte[] maskBytes)
         {
             // Convertir le masque en une chaîne de bits
             StringBuilder binaryMask = new StringBuilder();
@@ -384,7 +395,7 @@ namespace SAE_2._03_Réseau
                 lblReseau.Text = $"Adresse réseau : {adresseReseau}";
 
                 // Calculer et afficher la première adresse IP dans le mode réseau
-                string premiereIPReseau = CalculerPremiereAdresseIPReseau(adresseReseau);
+                string premiereIPReseau = CalculerPremiereAdresseIPReseau(adresseReseau, cidr);
                 lblPmachine.Text = $"Première IP : {premiereIPReseau}";
 
                 // Calculer et afficher l'adresse de broadcast
@@ -392,7 +403,7 @@ namespace SAE_2._03_Réseau
                 lblBroadcast.Text = $"Adresse de broadcast : {adresseBroadcast}";
 
                 // Calculer et afficher la dernière adresse IP dans le mode réseau
-                string derniereIPReseau = CalculerDerniereAdresseIPReseau(adresseBroadcast);
+                string derniereIPReseau = CalculerDerniereAdresseIPReseau(adresseBroadcast, cidr) ;
                 lblDmachine.Text = $"Dernière IP : {derniereIPReseau}";
 
                 // Calculer et afficher le nombre d'ips
@@ -523,8 +534,13 @@ namespace SAE_2._03_Réseau
 
         private int CalculerNombreMachines(int cidr)
         {
+            if (cidr >= 32)
+            {
+                return 0;
+            }
             return (int)Math.Pow(2, (32 - cidr)) - 2;
         }
+
 
 
 
@@ -593,16 +609,19 @@ namespace SAE_2._03_Réseau
             lblPmachine.Text = initialPmachineText;
             lblDmachine.Text = initialDmachineText;
 
-            // Réinitialiser le CIDR
-            lblCIDR.Text = string.Empty;
+            // Réinitialiser le CIDR avec sa valeur initiale
+            lblCIDR.Text = initialCIDRText;
 
-            // Réinitialiser le nombre de machines
-            lblNbMachines.Text = string.Empty;
+            // Réinitialiser le nombre de machines avec sa valeur initiale
+            lblNbMachines.Text = initialNbMachinesText;
         }
+
+
+
 
         private void panel1_Paint(object sender, PaintEventArgs e)
         {
-            // Set the region of the panel to be rounded
+            
             panel1.Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, panel1.Width, panel1.Height, 20, 20));
         }
 
@@ -649,29 +668,60 @@ namespace SAE_2._03_Réseau
         }
 
 
-        private string CalculerPremiereAdresseIPReseau(string adresseReseau)
+        private string CalculerPremiereAdresseIPReseau(string adresseReseau, int cidr)
         {
-            // Séparer les octets de l'adresse réseau
+            // Convertir l'adresse réseau en un entier de 32 bits
             string[] octetsReseau = adresseReseau.Split('.');
+            uint adresseReseauInt = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                adresseReseauInt = (adresseReseauInt << 8) + uint.Parse(octetsReseau[i]);
+            }
 
-            // Modifier le dernier octet pour obtenir la première adresse IP disponible
-            octetsReseau[3] = (int.Parse(octetsReseau[3]) + 1).ToString();
+            // Calculer la première adresse IP valide
+            uint premiereAdresseIPInt = adresseReseauInt + (cidr < 31 ? 1u : 0u);
+
+            // Convertir l'entier de 32 bits en une adresse IP
+            string[] octetsPremiereAdresseIP = new string[4];
+            for (int i = 3; i >= 0; i--)
+            {
+                octetsPremiereAdresseIP[i] = (premiereAdresseIPInt & 0xFF).ToString();
+                premiereAdresseIPInt >>= 8;
+            }
 
             // Rejoindre les octets pour former l'adresse IP
-            return string.Join(".", octetsReseau);
+            return string.Join(".", octetsPremiereAdresseIP);
         }
 
-        private string CalculerDerniereAdresseIPReseau(string adresseBroadcast)
+
+        private string CalculerDerniereAdresseIPReseau(string adresseBroadcast, int cidr)
         {
-            // Séparer les octets de l'adresse de broadcast
+            // Convertir l'adresse de broadcast en un entier de 32 bits
             string[] octetsBroadcast = adresseBroadcast.Split('.');
+            uint adresseBroadcastInt = 0;
+            for (int i = 0; i < 4; i++)
+            {
+                adresseBroadcastInt = (adresseBroadcastInt << 8) + uint.Parse(octetsBroadcast[i]);
+            }
 
-            // Modifier le dernier octet pour obtenir la dernière adresse IP disponible
-            octetsBroadcast[3] = (int.Parse(octetsBroadcast[3]) - 1).ToString();
+            // Calculer la dernière adresse IP valide
+            uint derniereAdresseIPInt = adresseBroadcastInt - (cidr < 31 ? 1u : 0u);
+
+            // Convertir l'entier de 32 bits en une adresse IP
+            string[] octetsDerniereAdresseIP = new string[4];
+            for (int i = 3; i >= 0; i--)
+            {
+                octetsDerniereAdresseIP[i] = (derniereAdresseIPInt & 0xFF).ToString();
+                derniereAdresseIPInt >>= 8;
+            }
 
             // Rejoindre les octets pour former l'adresse IP
-            return string.Join(".", octetsBroadcast);
+            return string.Join(".", octetsDerniereAdresseIP);
         }
+
+
+
+
 
 
         private void Form1_Load(object sender, EventArgs e)
@@ -680,19 +730,13 @@ namespace SAE_2._03_Réseau
         }
         private void ApplyRoundedCorners()
         {
-            // Set the region of the form to be rounded
+           
             Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 30, 30));
         }
         private void Form1_Resize(object sender, EventArgs e)
         {
             ApplyRoundedCorners();
         }
-
-        private void CIDRdonne_Click(object sender, EventArgs e)
-        {
-
-        }
-
 
     }
 }

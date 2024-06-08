@@ -179,7 +179,6 @@
             lblCIDR.Size = new Size(50, 14);
             lblCIDR.TabIndex = 21;
             lblCIDR.Text = "CIDR...";
-            lblCIDR.Click += CIDRdonne_Click;
             // 
             // panel32
             // 
