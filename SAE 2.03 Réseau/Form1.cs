@@ -44,12 +44,12 @@ namespace SAE_2._03_Réseau
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn
         (
-            int nLeftRect,     // x-coordinate of upper-left corner
-            int nTopRect,      // y-coordinate of upper-left corner
-            int nRightRect,    // x-coordinate of lower-right corner
-            int nBottomRect,   // y-coordinate of lower-right corner
-            int nWidthEllipse, // width of ellipse
-            int nHeightEllipse // height of ellipse
+            int nLeftRect, 
+            int nTopRect,    
+            int nRightRect,   
+            int nBottomRect,   
+            int nWidthEllipse, 
+            int nHeightEllipse 
         );
         public Form1()
         {
@@ -68,12 +68,13 @@ namespace SAE_2._03_Réseau
             initialMasqueBText = lblMasqueB.Text;
             initialPmachineText = lblPmachine.Text;
             initialDmachineText = lblDmachine.Text;
-            initialCIDRText = lblCIDR.Text; // Sauvegarder la valeur initiale de lblCIDR
+            initialCIDRText = lblCIDR.Text; 
             initialNbMachinesText = lblNbMachines.Text;
         }
 
         private void Btnretour_Click(object sender, EventArgs e)
         {
+            //Bouton pour fermer la calculatrice
             this.Close();
         }
 
@@ -81,36 +82,45 @@ namespace SAE_2._03_Réseau
 
         private static string ObtenirClasseIP(string ipAddress)
         {
-
-            // Séparer les octets de l'adresse IP
+            // Séparer les octets de l'adresse IP en utilisant le point (.) comme séparateur
             string[] octets = ipAddress.Split('.');
+
+            // Convertir le premier octet de la chaîne en entier
             int firstOctet = int.Parse(octets[0]);
 
+            // Déterminer la classe de l'adresse IP en fonction de la valeur du premier octet
             if (firstOctet >= 0 && firstOctet <= 127)
             {
+                // Classe A : premier octet entre 0 et 127
                 return "A";
             }
             else if (firstOctet >= 128 && firstOctet <= 191)
             {
+                // Classe B : premier octet entre 128 et 191
                 return "B";
             }
             else if (firstOctet >= 192 && firstOctet <= 223)
             {
+                // Classe C : premier octet entre 192 et 223
                 return "C";
             }
             else if (firstOctet >= 224 && firstOctet <= 239)
             {
+                // Classe D : premier octet entre 224 et 239 (utilisée pour le multicast)
                 return "D";
             }
             else if (firstOctet >= 240 && firstOctet <= 255)
             {
+                // Classe E : premier octet entre 240 et 255 (réservée pour des usages futurs ou expérimentaux)
                 return "E";
             }
             else
             {
+                // Si le premier octet ne correspond à aucune des classes définies
                 return "Inconnue";
             }
         }
+
 
 
 
@@ -231,7 +241,7 @@ namespace SAE_2._03_Réseau
                     // Si validation réussie, calculer et afficher la classe IP pour ip2Input
                     AfficherClasseIPetMasque(ip2Input, CalculerCIDRDepuisMasque(masqueBytes));
 
-                    // Autres opérations ...
+                    
                 }
                 else
                 {
@@ -249,11 +259,14 @@ namespace SAE_2._03_Réseau
 
         private bool ValidationMasquePourClasse(string ipClass, byte[] maskBytes)
         {
+            // Convertir le tableau de bytes en une chaîne de caractères représentant le masque de sous-réseau
             string mask = string.Join(".", maskBytes.Select(b => b.ToString()));
 
+            // Utiliser un switch pour vérifier la validité du masque de sous-réseau en fonction de la classe IP
             switch (ipClass)
             {
                 case "A":
+                    // Pour la classe A, le masque doit être compris entre "255.0.0.0" et "255.255.255.255"
                     if ((mask.CompareTo("255.0.0.0") >= 0 && mask.CompareTo("255.255.255.255") <= 0))
                     {
                         return true;
@@ -263,6 +276,7 @@ namespace SAE_2._03_Réseau
                         return false;
                     }
                 case "B":
+                    // Pour la classe B, le masque doit être compris entre "255.255.0.0" et "255.255.255.255"
                     if ((mask.CompareTo("255.255.0.0") >= 0 && mask.CompareTo("255.255.255.255") <= 0))
                     {
                         return true;
@@ -272,6 +286,7 @@ namespace SAE_2._03_Réseau
                         return false;
                     }
                 case "C":
+                    // Pour la classe C, le masque doit être compris entre "255.255.255.0" et "255.255.255.255"
                     if ((mask.CompareTo("255.255.255.0") >= 0 && mask.CompareTo("255.255.255.255") <= 0))
                     {
                         return true;
@@ -281,6 +296,8 @@ namespace SAE_2._03_Réseau
                         return false;
                     }
                 case "D":
+                    // Pour la classe D, le masque doit être compris entre "255.255.255.0" et "255.255.255.240"
+                    // ou être égal à "255.255.255.255"
                     if ((mask.CompareTo("255.255.255.0") >= 0 && mask.CompareTo("255.255.255.240") <= 0) || mask == "255.255.255.255")
                     {
                         return true;
@@ -290,6 +307,7 @@ namespace SAE_2._03_Réseau
                         return false;
                     }
                 case "E":
+                    // Pour la classe E, le masque doit être égal à "255.255.255.255"
                     if (mask == "255.255.255.255")
                     {
                         return true;
@@ -299,21 +317,32 @@ namespace SAE_2._03_Réseau
                         return false;
                     }
                 default:
+                    // Si la classe IP ne correspond à aucune des classes définies
                     return false;
             }
         }
 
 
 
+
         private int CalculerCIDRDepuisMasque(byte[] maskBytes)
         {
             int cidr = 0;
+
+            // Parcourir chaque octet du masque de sous-réseau
             foreach (byte b in maskBytes)
             {
-                cidr += Convert.ToString(b, 2).Count(bit => bit == '1');
+                // Convertir l'octet en une chaîne binaire
+                string binaryString = Convert.ToString(b, 2);
+
+                // Compter le nombre de bits à 1 dans la chaîne binaire et l'ajouter au CIDR
+                cidr += binaryString.Count(bit => bit == '1');
             }
+
+            // Retourner la valeur CIDR calculée
             return cidr;
         }
+
 
 
 
@@ -325,19 +354,26 @@ namespace SAE_2._03_Réseau
             switch (ipClass)
             {
                 case "A":
+                    // Les adresses de classe A ont des valeurs CIDR valides de 8 à 32
                     return cidr >= 8 && cidr <= 32;
                 case "B":
+                    // Les adresses de classe B ont des valeurs CIDR valides de 16 à 32
                     return cidr >= 16 && cidr <= 32;
                 case "C":
+                    // Les adresses de classe C ont des valeurs CIDR valides de 24 à 32
                     return cidr >= 24 && cidr <= 32;
                 case "D":
+                    // Les adresses de classe D ont des valeurs CIDR valides de 24 à 32
                     return cidr >= 24 && cidr <= 32;
                 case "E":
-                    return cidr >= 24 && cidr == 32;
+                    // Les adresses de classe E ont une valeur CIDR spécifique de 32
+                    return cidr == 32;
                 default:
+                    // Retourner faux pour une classe IP non reconnue
                     return false;
             }
         }
+
 
 
 
@@ -493,101 +529,163 @@ namespace SAE_2._03_Réseau
 
         private int CalculerCIDRDepuisMasque(string subnetMask)
         {
+            // Initialiser la variable pour stocker le masque sous forme de nombre entier
             uint mask = 0;
+
+            // Séparer les octets du masque de sous-réseau
             string[] octets = subnetMask.Split('.');
+
+            // Convertir chaque octet en entier et les combiner pour former le masque
             for (int i = 0; i < 4; i++)
             {
+                // Convertir l'octet en entier et le décaler vers la gauche en fonction de sa position
                 mask += uint.Parse(octets[i]) << (24 - (i * 8));
             }
+
+            // Initialiser la variable pour compter les bits à 1
             int cidr = 0;
+
+            // Compter les bits à 1 dans le masque
             while (mask > 0)
             {
+                // Ajouter 1 si le bit de poids faible est 1
                 cidr += (int)(mask & 1);
+
+                // Décaler le masque vers la droite pour vérifier le prochain bit
                 mask >>= 1;
             }
+
+            // Retourner la longueur du préfixe CIDR
             return cidr;
         }
 
+
         private string CalculerAdresseBroadcast(string adresseIP, string masqueSousReseau)
         {
+            // Séparer les octets de l'adresse IP
             string[] octetsIP = adresseIP.Split('.');
+
+            // Séparer les octets du masque de sous-réseau
             string[] octetsMasque = masqueSousReseau.Split('.');
+
+            // Initialiser la chaîne pour stocker l'adresse de broadcast
             string adresseBroadcast = "";
 
+            // Parcourir chaque octet
             for (int i = 0; i < 4; i++)
             {
+                // Convertir les octets de l'adresse IP et du masque en entiers
                 int octetIP = int.Parse(octetsIP[i]);
                 int octetMasque = int.Parse(octetsMasque[i]);
+
+                // Inverser les bits du masque de sous-réseau
                 int octetInverseMasque = ~octetMasque & 0xFF;
+
+                // Calculer l'octet de l'adresse de broadcast en utilisant l'opération OR bit à bit
                 int octetBroadcast = octetIP | octetInverseMasque;
+
+                // Ajouter l'octet de l'adresse de broadcast à la chaîne
                 adresseBroadcast += octetBroadcast.ToString() + ".";
             }
 
+            // Retirer le point final de la chaîne
             adresseBroadcast = adresseBroadcast.TrimEnd('.');
+
+            // Retourner l'adresse de broadcast
             return adresseBroadcast;
         }
 
+
+        // Méthode pour calculer le nombre total d'adresses IP dans un sous-réseau donné le CIDR
         private int CalculerNombreIP(int cidr)
         {
+            // Calculer le nombre total d'adresses IP en utilisant la formule 2^(32 - CIDR)
             return (int)Math.Pow(2, (32 - cidr));
         }
 
+        // Méthode pour calculer le nombre de machines utilisables dans un sous-réseau donné le CIDR
         private int CalculerNombreMachines(int cidr)
         {
+            // Si le CIDR est de 32, il n'y a aucune adresse IP utilisable pour les machines
             if (cidr >= 32)
             {
                 return 0;
             }
+            // Calculer le nombre de machines utilisables en utilisant la formule 2^(32 - CIDR) - 2
+            // On soustrait 2 pour exclure l'adresse réseau et l'adresse de broadcast
             return (int)Math.Pow(2, (32 - cidr)) - 2;
         }
 
 
 
 
+
         private string CalculerAdresseReseau(string adresseIP, string masqueSousReseau)
         {
+            // Diviser l'adresse IP et le masque de sous-réseau en octets
             string[] octetsIP = adresseIP.Split('.');
             string[] octetsMasque = masqueSousReseau.Split('.');
+
+            // Initialiser une chaîne pour stocker l'adresse réseau
             string adresseReseau = "";
 
+            // Parcourir les 4 octets de l'adresse IP et du masque de sous-réseau
             for (int i = 0; i < 4; i++)
             {
+                // Convertir les octets de l'adresse IP et du masque de sous-réseau en entiers
                 int octetIP = int.Parse(octetsIP[i]);
                 int octetMasque = int.Parse(octetsMasque[i]);
+
+                // Calculer l'octet de l'adresse réseau en effectuant un ET logique entre l'octet de l'adresse IP et l'octet du masque de sous-réseau
                 int octetReseau = octetIP & octetMasque;
+
+                // Ajouter l'octet calculé à la chaîne de l'adresse réseau avec un point
                 adresseReseau += octetReseau.ToString() + ".";
             }
 
+            // Retirer le dernier point de la chaîne de l'adresse réseau
             adresseReseau = adresseReseau.TrimEnd('.');
+
+            // Retourner l'adresse réseau calculée
             return adresseReseau;
         }
 
 
+
         private void pnlB_MouseDown(object sender, MouseEventArgs e)
         {
+            // Vérifier si le bouton enfoncé est le bouton gauche de la souris
             if (e.Button == MouseButtons.Left)
             {
+                // Enregistrer les coordonnées de départ lorsque le bouton gauche de la souris est enfoncé
                 startPoint = new Point(e.X, e.Y);
             }
         }
 
         private void pnlB_MouseMove(object sender, MouseEventArgs e)
         {
+            // Vérifier si le bouton gauche de la souris est enfoncé
             if (e.Button == MouseButtons.Left)
             {
+                // Obtenir les coordonnées de la souris par rapport à l'écran
                 Point endPoint = this.PointToScreen(new Point(e.X, e.Y));
+
+                // Calculer les nouvelles coordonnées du formulaire en fonction du déplacement
                 this.Location = new Point(endPoint.X - startPoint.X, endPoint.Y - startPoint.Y);
             }
         }
 
+
         private void pnlB_MouseUp(object sender, MouseEventArgs e)
         {
+            // Vérifier si le bouton relâché est le bouton gauche de la souris
             if (e.Button == MouseButtons.Left)
             {
                 // Réinitialiser le point de départ
                 startPoint = Point.Empty;
             }
         }
+
 
         private void button1_Click(object sender, EventArgs e)
         {
@@ -608,11 +706,7 @@ namespace SAE_2._03_Réseau
             lblMasqueB.Text = initialMasqueBText;
             lblPmachine.Text = initialPmachineText;
             lblDmachine.Text = initialDmachineText;
-
-            // Réinitialiser le CIDR avec sa valeur initiale
             lblCIDR.Text = initialCIDRText;
-
-            // Réinitialiser le nombre de machines avec sa valeur initiale
             lblNbMachines.Text = initialNbMachinesText;
         }
 
@@ -627,45 +721,62 @@ namespace SAE_2._03_Réseau
 
         private bool IPSpeciale(string ipAddress, out string? message)
         {
+            // Convertir l'adresse IP en entier non signé
             uint ip = ConvertIPToUInt32(ipAddress);
 
+            // Parcourir les plages d'adresses IP spéciales
             foreach (var range in specialIPRanges)
             {
+                // Convertir les adresses de début et de fin de la plage en entiers non signés
                 uint startIP = ConvertIPToUInt32(range.Start);
                 uint endIP = ConvertIPToUInt32(range.End);
 
+                // Vérifier si l'adresse IP est comprise dans la plage spéciale
                 if (ip >= startIP && ip <= endIP)
                 {
+                    // Si oui, définir le message indiquant que l'adresse IP est spéciale
                     message = $"L'adresse IP {ipAddress} est spéciale : {range.Description}";
                     return true;
                 }
             }
 
+            // Si l'adresse IP n'est pas dans une plage spéciale, définir le message comme null
             message = null;
             return false;
         }
 
+
+        // Méthode pour convertir une adresse IP en entier non signé (uint32)
         private uint ConvertIPToUInt32(string ipAddress)
         {
+            // Diviser l'adresse IP en segments (octets) en utilisant le caractère '.'
             var segments = ipAddress.Split('.').Select(byte.Parse).ToArray();
+
+            // Combiner les segments en un seul entier non signé à l'aide des opérateurs de décalage gauche (<<) et d'ou (|)
+            // Chaque segment est décalé vers la gauche selon sa position et les segments sont combinés en un seul entier
             return ((uint)segments[0] << 24) | ((uint)segments[1] << 16) | ((uint)segments[2] << 8) | segments[3];
         }
 
-
+        // Méthode pour valider une adresse IP
         private bool ValidationIP(string ipAddress)
         {
+            // Expression régulière pour vérifier si l'adresse IP est au bon format
             string pattern = @"^((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[1-9]?[0-9])$";
 
-
-
+            // Vérifier si l'adresse IP correspond au motif de l'expression régulière
             return Regex.IsMatch(ipAddress, pattern);
         }
 
+        // Méthode pour valider une notation CIDR
         private bool ValidationCIDR(string cidr)
         {
+            // Expression régulière pour vérifier si la notation CIDR est au bon format
             string pattern = @"^([0-9]|[12][0-9]|3[0-2])$";
+
+            // Vérifier si la chaîne CIDR correspond au motif de l'expression régulière
             return Regex.IsMatch(cidr, pattern);
         }
+
 
 
         private string CalculerPremiereAdresseIPReseau(string adresseReseau, int cidr)
@@ -720,10 +831,6 @@ namespace SAE_2._03_Réseau
         }
 
 
-
-
-
-
         private void Form1_Load(object sender, EventArgs e)
         {
             ApplyRoundedCorners();
@@ -733,6 +840,7 @@ namespace SAE_2._03_Réseau
            
             Region = Region.FromHrgn(CreateRoundRectRgn(0, 0, this.Width, this.Height, 30, 30));
         }
+
         private void Form1_Resize(object sender, EventArgs e)
         {
             ApplyRoundedCorners();
